@@ -41,7 +41,7 @@ void Renderer::ClearColorBuffer(uint32_t color)
 }
 
 // Set pixel at coordinates (x, y)
-void Renderer::SetPixel(int x, int y, uint32_t color)
+void Renderer::DrawPixel(int x, int y, uint32_t color)
 {
 	if (!m_color_buffer)
 		return;
@@ -69,7 +69,7 @@ void Renderer::DrawGrid(uint32_t color, int spacing)
 	{
 		for (int dx = 0; dx <= m_buffer_width; dx += spacing)
 		{
-			SetPixel(dx, dy, color);
+			DrawPixel(dx, dy, color);
 		}
 	}
 }
@@ -86,9 +86,7 @@ void Renderer::DrawRectangle(uint16_t x, uint16_t y, uint16_t width, uint16_t he
 			int new_x = x + dx;
 			int new_y = y + dy;
 
-			if (new_x >= 0 && new_x < m_buffer_width
-				&& new_y >= 0 && new_y < m_buffer_height)
-				SetPixel(new_x, new_y, color);
+			DrawPixel(new_x, new_y, color);
 		}
 	}
 }

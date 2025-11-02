@@ -297,9 +297,10 @@ void WindowsAdapter::StartWindowed(int x, int y, unsigned int w, unsigned int h,
 	// Show window
 	if (m_application)
 	{
+		m_application->Initialize();
+
 		ShowWindow(m_hWnd, nCmdShow);
 		UpdateWindow(m_hWnd);
-		m_application->Initialize();
 
 	}
 	else
@@ -335,15 +336,12 @@ void WindowsAdapter::StartWindowed(int x, int y, unsigned int w, unsigned int h,
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 
-
 		}
 		else
 		{
 			unsigned long time = getTime();
 			unsigned int dt = static_cast<unsigned>(time - m_time);
 			m_time = time;
-			//std::cout << "Updating " << dt << "\n";
-
 			m_application->Update(dt);
 		}
 	}

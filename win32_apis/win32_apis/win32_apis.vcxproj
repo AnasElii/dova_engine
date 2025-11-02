@@ -134,6 +134,7 @@
     <ClInclude Include="iplatform_adapter.hpp" />
     <ClInclude Include="platform_factory.hpp" />
     <ClInclude Include="renderer.hpp" />
+    <ClInclude Include="vector.h" />
     <ClInclude Include="windows_adapter.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
