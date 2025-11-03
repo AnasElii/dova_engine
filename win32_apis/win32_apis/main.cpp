@@ -29,6 +29,7 @@ class RuleEngine : public Application
 
 			}
 		}
+
 	}
 
 	vec2_t project(vec3_t point)
@@ -68,11 +69,9 @@ class RuleEngine : public Application
 		renderer->ClearColorBuffer(0xFF020202);
 		renderer->DrawGrid(0xFF333333);
 
-		std::cout << "==========================\n";
 		for (int i = 0; i < P_NUMBER; i++)
 		{
 			const vec2_t point = m_projected_points[i];
-			std::cout << "x: " << point.x << " y: " << point.y << "\n";
 			renderer->DrawRectangle(
 				static_cast<uint16_t>(point.x) + 1920 / 2, 
 				static_cast<uint16_t>(point.y) + 1080 / 2, 

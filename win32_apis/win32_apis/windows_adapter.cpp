@@ -6,7 +6,7 @@
 #define _CRT_SECURE_NO_WARNING
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
-#define TARGET_DISPLAY 1 // 0 based system
+#define TARGET_DISPLAY 2 // 0 based system
 
 // Define the static member
 std::vector<WindowsAdapter::MonitorInfo> WindowsAdapter::m_monitors;
@@ -245,6 +245,7 @@ void WindowsAdapter::StartWindowed(int x, int y, unsigned int w, unsigned int h,
 		<< L", Right=" << windowRect.right
 		<< L", Bottom=" << windowRect.bottom << L"\n";
 
+
 	m_hWnd = CreateWindowEx(
 		0,
 		CLASS_NAME,
@@ -312,17 +313,8 @@ void WindowsAdapter::StartWindowed(int x, int y, unsigned int w, unsigned int h,
 	//  ---------------------------------------
 	// Main loop
 	MSG msg = {};
-	/*while (GetMessage(&msg, nullptr, 0, 0))
-	{
-		if (msg.message == WM_QUIT)
-			break;
-
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}*/
 
 	while (m_hWnd) {
-		//std::cout << "Message\n";
 
 		if (PeekMessage(&msg,
 			nullptr,
@@ -342,7 +334,14 @@ void WindowsAdapter::StartWindowed(int x, int y, unsigned int w, unsigned int h,
 			unsigned long time = getTime();
 			unsigned int dt = static_cast<unsigned>(time - m_time);
 			m_time = time;
+			float aspect = m_buffer_width / (float)m_buffer_height;
+
 			m_application->Update(dt);
+			m_application->Render(aspect);
+
+			if (m_hdc)
+				PresentPixelBuffer(m_hdc);
+
 		}
 	}
 
@@ -371,12 +370,6 @@ LRESULT CALLBACK WindowsAdapter::WinProc(HWND hWnd, UINT message, WPARAM wParam,
 		{
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hWnd, &ps);
-
-			// Let the application handle rendering
-			if (adapter->m_application)
-			{
-				adapter->m_application->Render(0);
-			}
 
 			// Present to screen
 			adapter->PresentPixelBuffer(hdc);
