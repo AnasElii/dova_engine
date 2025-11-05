@@ -73,8 +73,8 @@ class RuleEngine : public Application
 		{
 			const vec2_t point = m_projected_points[i];
 			renderer->DrawRectangle(
-				static_cast<uint16_t>(point.x) + 1920 / 2, 
-				static_cast<uint16_t>(point.y) + 1080 / 2, 
+				static_cast<uint16_t>(point.x) + (renderer->GetBufferWidth() / 2), 
+				static_cast<uint16_t>(point.y) + (renderer->GetBufferHeight() / 2), 
 				4, 
 				4, 
 				0xFF579e42

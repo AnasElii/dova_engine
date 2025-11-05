@@ -2,7 +2,7 @@
 
 #include "renderer.hpp"
 
-Renderer::Renderer() : m_color_buffer(nullptr), m_buffer_width(0), m_buffer_height(0) {}
+Renderer::Renderer() : m_color_buffer(nullptr), m_monitor{ 0,0 } {}
 Renderer::~Renderer()
 {
 	// Note: We don't delete m_color_buffer since it's owned by the platform adapter
@@ -14,16 +14,16 @@ void Renderer::Initialize(uint32_t* color_buffer, int width, int height)
 	if (width <= 0 || height <= 0) return;
 
 	m_color_buffer = color_buffer;
-	m_buffer_width = width;
-	m_buffer_height = height;
+	m_monitor.buffer_width = width;
+	m_monitor.buffer_height = height;
 
 }
 
 void Renderer::Shutdown()
 {
 	m_color_buffer = nullptr;
-	m_buffer_width = 0;
-	m_buffer_height = 0;
+	m_monitor.buffer_width = 0;
+	m_monitor.buffer_height = 0;
 }
 
 
@@ -31,9 +31,9 @@ void Renderer::ClearColorBuffer(uint32_t color)
 {
 
 	if (!m_color_buffer) return;
-	if (m_buffer_width <= 0 || m_buffer_height <= 0) return;
+	if (m_monitor.buffer_width <= 0 || m_monitor.buffer_height <= 0) return;
 
-	for (int i = 0; i < m_buffer_width * m_buffer_height; ++i)
+	for (int i = 0; i < m_monitor.buffer_width * m_monitor.buffer_height; ++i)
 	{
 		m_color_buffer[i] = color;
 	}
@@ -46,13 +46,13 @@ void Renderer::DrawPixel(int x, int y, uint32_t color)
 	if (!m_color_buffer)
 		return;
 
-	if (m_buffer_width <= 0 || m_buffer_height <= 0)
+	if (m_monitor.buffer_width <= 0 || m_monitor.buffer_height <= 0)
 		return;
 
-	if (m_color_buffer && x >= 0 && x < m_buffer_width
-		&& y >= 0 && y < m_buffer_height)
+	if (m_color_buffer && x >= 0 && x < m_monitor.buffer_width
+		&& y >= 0 && y < m_monitor.buffer_height)
 	{
-		m_color_buffer[y * m_buffer_width + x] = color;
+		m_color_buffer[y * m_monitor.buffer_width + x] = color;
 	}
 }
 
@@ -61,13 +61,13 @@ void Renderer::DrawGrid(uint32_t color, int spacing)
 	if (!m_color_buffer)
 		return;
 
-	if (m_buffer_width <= 0 || m_buffer_height <= 0)
+	if (m_monitor.buffer_width <= 0 || m_monitor.buffer_height <= 0)
 		return;
 
 	// Vertical lines
-	for (int dy = 0; dy <= m_buffer_width; dy += spacing)
+	for (int dy = 0; dy <= m_monitor.buffer_width; dy += spacing)
 	{
-		for (int dx = 0; dx <= m_buffer_width; dx += spacing)
+		for (int dx = 0; dx <= m_monitor.buffer_width; dx += spacing)
 		{
 			DrawPixel(dx, dy, color);
 		}
