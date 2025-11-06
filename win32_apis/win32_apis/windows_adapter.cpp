@@ -6,7 +6,7 @@
 #define _CRT_SECURE_NO_WARNING
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
-#define TARGET_DISPLAY 2 // 0 based system
+#define TARGET_DISPLAY 1 // 0 based system
 
 // Define the static member
 std::vector<WindowsAdapter::MonitorInfo> WindowsAdapter::m_monitors;
@@ -66,6 +66,10 @@ RECT WindowsAdapter::GetMonitorRect(int monitorIndex)
 	};
 	return primary_rect;
 }
+
+#pragma comment(lib, "winmm.lib")   
+#pragma comment(lib, "Msimg32.lib")  // Add this line for AlphaBlend
+#include <mmsystem.h>
 
 // Initialize pixel buffer
 void WindowsAdapter::InitializePixelBuffer(HDC hdc)
@@ -134,17 +138,18 @@ void WindowsAdapter::InitializePixelBuffer(HDC hdc)
 
 void WindowsAdapter::PresentPixelBuffer(HDC hdc)
 {
-	if (m_memory_dc && m_bitmap && m_color_buffer)
+	if (!m_memory_dc || !m_bitmap || !m_color_buffer)
 	{
-		// Blit from memory DC (your pixel buffer) to window DC
-		BOOL result = BitBlt(hdc, 0, 0, m_buffer_width, m_buffer_height, m_memory_dc, 0, 0, SRCCOPY);
-		if (!result)
-		{
-			std::cerr << "BitBlt failed. Error: " << GetLastError() << "\n";
-		}
-	}else
+		std::cerr << "Cannot present pixel buffer, Initialization failed\n";
+		return;
+	}
+
+	// Blit from memory DC (your pixel buffer) to window DChat
+	BOOL result = BitBlt(hdc, 0, 0, m_buffer_width, m_buffer_height, m_memory_dc, 0, 0, SRCCOPY);
+
+	if (!result)
 	{
-		std::cerr << "Cannot present pixel buffer component not initialized\n";
+		std::cerr << "BitBlt failed. Error: " << GetLastError() << "\n";
 	}
 }
 
@@ -189,6 +194,7 @@ void WindowsAdapter::StartWindowed(int x, int y, unsigned int w, unsigned int h,
 	wn.hInstance = m_instance;
 	wn.lpfnWndProc = WindowsAdapter::WinProc;
 	wn.lpszClassName = CLASS_NAME;
+	wn.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 
 	if (!RegisterClass(&wn))
 	{
