@@ -16,7 +16,7 @@ A simple 3D Renderer implemented from scratch — showcasing how computer graphi
 - **CPU-Based Rendering**  
   No hardware acceleration — pure software rendering for learning and demonstration purposes.
 
-- ~~Physics Engine Implementation
+- ~~**Physics Engine Implementation**
   Includes a basic physics engine for object movement, collision handling, and game simulation.~~
 
 - ~~**Integrated Arweave Storage**  
@@ -71,8 +71,8 @@ src/
 
 - Sets up a window using WIN32 APIs (native) or SDL (cross-platform).
 - Draws a 3D scene using custom CPU-based algorithms (transformations, projections, rasterization).
-- Integrated physics engine enables simulation and interaction within the scene.
-- Resource manager allows game assets to be stored and retrieved via Arweave for decentralized, permanent storage.
+- ~~Integrated physics engine enables simulation and interaction within the scene.~~
+- ~~Resource manager allows game assets to be stored and retrieved via Arweave for decentralized, permanent storage.~~
 - Handles input and event loops manually for learning purposes.
 - Main rendering pipeline decoupled for easy adaptation to non-Windows platforms.
 
@@ -87,11 +87,5 @@ src/
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.
-
-## Author
-
-[AnasElii](https://github.com/AnasElii)
-
----
 
 > **Note:** For native Windows support, use the WIN32 API backend. For cross-platform builds, enable the SDL backend and make sure SDL libraries are installed. Arweave integration is used within the resource manager for asset permanence.
