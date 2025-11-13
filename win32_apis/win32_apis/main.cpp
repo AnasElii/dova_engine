@@ -2,11 +2,10 @@
 
 #include "application.hpp"
 #include "renderer.hpp"
+#include "projection.hpp"
 #include "vector.h"
-#include "windows_adapter.hpp"
 
 #define P_NUMBER (9 * 9 * 9)
-#define NEAR_PLANE 0.1f
 
 class RuleEngine : public Application
 {
@@ -32,63 +31,19 @@ class RuleEngine : public Application
 
 	}
 
-	vec2_t orthographic_project(vec3_t point)
-	{
-		vec2_t projected_point = {
-			(point.x * m_fov_factor),
-			(point.y * m_fov_factor)
-		};
-
-		return projected_point;
-	}
-
-	vec2_t perspective_project(vec3_t point)
-	{
-		// Clamp z to near plane (prevents division by zero, infinity, and smaller values)
-		float z = point.z <= NEAR_PLANE ? point.z = NEAR_PLANE : point.z;
-
-		vec2_t projected_point = {
-			(point.x * m_fov_factor) / z,
-			(point.y * m_fov_factor) / z
-		};
-
-		return projected_point;
-	}
-
 	void Update(int inDeltaTime) override
 	{
 		for (int i = 0; i < P_NUMBER; i++)
 		{
 			vec3_t point = m_cube_points[i];
 
-			// Change color base on Z distance
-			const uint32_t main_color = 0xFF9090FF;
+			// Move point relative to camera
+			point.z -= camera_position.z;
 
-			if (point.z == -1)
-				m_color_point[i] = main_color;
-			else
-			{
-				uint8_t r_color = (main_color >> 16) & 0xFF;
-				uint8_t g_color = (main_color >> 8) & 0xFF;
-				uint8_t b_color = main_color & 0xFF;
+			// Project the current point
+			vec2_t projected_point = m_projection->PerspectiveProject(point);
 
-				// Calculate fade factor (0.0 = no fade, 1.0 = full fade to black)
-				float fade_factory = point.z; // point.z ranges from 1 to -1
-
-				uint8_t final_r_color = static_cast<uint8_t>(r_color * (1.0f - fade_factory));
-				uint8_t final_g_color = static_cast<uint8_t>(g_color * (1.0f - fade_factory));
-				uint8_t final_b_color = static_cast<uint8_t>(b_color * (1.0f - fade_factory));
-
-				m_color_point[i] = 0xFF000000 | (final_r_color << 16) | (final_g_color << 8) | final_b_color;
-
-				// Move point relative to camera
-				point.z -= camera_position.z;
-
-				// Project the current point
-				vec2_t projected_point = perspective_project(point);
-
-				m_projected_points[i] = projected_point;
-			}
+			m_projection->GetProjectedPoints()[i] = projected_point;
 		}
 	}
 
@@ -106,7 +61,7 @@ class RuleEngine : public Application
 
 		for (int i = 0; i < P_NUMBER; i++)
 		{
-			const vec2_t point = m_projected_points[i];
+			const vec2_t point = m_projection->GetProjectedPoints()[i];
 
 			// Check the Z axis of the point the far the point the color gets darker and get smaller
 			
@@ -115,7 +70,7 @@ class RuleEngine : public Application
 				static_cast<uint16_t>(point.y) + (renderer->GetBufferHeight() / 2),
 				4,
 				4,
-				m_color_point[i]
+				0xFF57A649
 			);
 		
 		}
@@ -129,12 +84,9 @@ class RuleEngine : public Application
 
 private:
 	vec3_t m_cube_points[P_NUMBER];
-	vec2_t m_projected_points[P_NUMBER];
+	Projection *m_projection = new Projection(static_cast<size_t>(P_NUMBER));
 
 	vec3_t camera_position = {0, 0, -5};
-
-	const float m_fov_factor = 1500;
-	uint32_t m_color_point[P_NUMBER];
 
 };
 

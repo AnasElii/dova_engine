@@ -2,7 +2,8 @@
 
 #include "renderer.hpp"
 
-Renderer::Renderer() : m_color_buffer(nullptr), m_monitor{ 0,0 } {}
+Renderer::Renderer() : m_front_buffer(nullptr), m_back_buffer(nullptr),
+						m_monitor{ 0,0 }, m_back_buffer_init(false) {}
 Renderer::~Renderer()
 {
 	// Note: We don't delete m_color_buffer since it's owned by the platform adapter
@@ -13,29 +14,49 @@ void Renderer::Initialize(uint32_t* color_buffer, int width, int height)
 	if (!color_buffer) return;
 	if (width <= 0 || height <= 0) return;
 
-	m_color_buffer = color_buffer;
+	m_front_buffer = color_buffer;
 	m_monitor.buffer_width = width;
 	m_monitor.buffer_height = height;
 
+	size_t size_buffer = static_cast<size_t>(width * height);
+	m_back_buffer = new uint32_t[size_buffer];
+	m_back_buffer_init = true;
+
+	ClearColorBuffer(0xFFFFFFFF);
 }
 
 void Renderer::Shutdown()
 {
-	m_color_buffer = nullptr;
+	if (m_back_buffer && m_back_buffer_init)
+	{
+		delete[] m_back_buffer;
+		m_back_buffer = nullptr;
+		m_back_buffer_init = false;
+	}
+
+	m_front_buffer = nullptr;
 	m_monitor.buffer_width = 0;
 	m_monitor.buffer_height = 0;
 }
 
+void Renderer::SwapBuffers()
+{
+	if (!m_back_buffer || !m_back_buffer) return;
+	if (m_monitor.buffer_width <= 0 || m_monitor.buffer_height <= 0) return;
+
+	size_t buffer_size = m_monitor.buffer_width * m_monitor.buffer_height;
+	std::memcpy(m_front_buffer, m_back_buffer, buffer_size * sizeof(uint32_t));
+}
 
 void Renderer::ClearColorBuffer(uint32_t color)
 {
 
-	if (!m_color_buffer) return;
+	if (!m_back_buffer) return;
 	if (m_monitor.buffer_width <= 0 || m_monitor.buffer_height <= 0) return;
 
 	for (int i = 0; i < m_monitor.buffer_width * m_monitor.buffer_height; ++i)
 	{
-		m_color_buffer[i] = color;
+		m_back_buffer[i] = color;
 	}
 
 }
@@ -45,7 +66,7 @@ void Renderer::DrawPixel(int x, int y, uint32_t color)
 	if (x < 0 || x >= m_monitor.buffer_width || y < 0 || y >= m_monitor.buffer_height)
 		return;
 
-	uint32_t* pixel = &m_color_buffer[y * m_monitor.buffer_width + x];
+	uint32_t* pixel = &m_back_buffer[y * m_monitor.buffer_width + x];
 
 	// Extract ARGB components
 	// 0xAARRGGBB >> 24 = 0x000000AA
@@ -81,7 +102,7 @@ void Renderer::DrawPixel(int x, int y, uint32_t color)
 
 void Renderer::DrawGrid(uint32_t color, int spacing)
 {
-	if (!m_color_buffer)
+	if (!m_back_buffer)
 		return;
 
 	if (m_monitor.buffer_width <= 0 || m_monitor.buffer_height <= 0)
@@ -99,7 +120,7 @@ void Renderer::DrawGrid(uint32_t color, int spacing)
 
 void Renderer::DrawRectangle(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color)
 {
-	if (!m_color_buffer)
+	if (!m_back_buffer)
 		return;
 
 	for (int dy = 0; dy <= height; dy++)

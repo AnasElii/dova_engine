@@ -28,7 +28,7 @@ struct vec3_t
 	vec3_t() : x(0), y(0), z(0){}
 
 	vec3_t(float x, float y, float z) { this->x = x; this->y = y; this->z = z; }
-	explicit vec3_t(const float* v) { x = v[0]; y = v[1]; z = v[3]; }
+	explicit vec3_t(const float* v) { x = v[0]; y = v[1]; z = v[2]; }
 
 	vec3_t& set(float x, float y, float z)
 	{

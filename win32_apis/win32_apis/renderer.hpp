@@ -28,8 +28,13 @@ public:
 	void DrawGrid(uint32_t color, int spacing = 10);
 	void DrawRectangle(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color);
 
+public:
+	void SwapBuffers();
+
 private:
 
-	uint32_t* m_color_buffer;
+	uint32_t* m_front_buffer;
+	uint32_t* m_back_buffer;
 	monitor m_monitor;
+	bool m_back_buffer_init;
 };
