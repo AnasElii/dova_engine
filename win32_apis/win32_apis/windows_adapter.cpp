@@ -67,6 +67,10 @@ RECT WindowsAdapter::GetMonitorRect(int monitorIndex)
 	return primary_rect;
 }
 
+#pragma comment(lib, "winmm.lib")   
+#pragma comment(lib, "Msimg32.lib")  // Add this line for AlphaBlend
+#include <mmsystem.h>
+
 // Initialize pixel buffer
 void WindowsAdapter::InitializePixelBuffer(HDC hdc)
 {
@@ -134,17 +138,18 @@ void WindowsAdapter::InitializePixelBuffer(HDC hdc)
 
 void WindowsAdapter::PresentPixelBuffer(HDC hdc)
 {
-	if (m_memory_dc && m_bitmap && m_color_buffer)
+	if (!m_memory_dc || !m_bitmap || !m_color_buffer)
 	{
-		// Blit from memory DC (your pixel buffer) to window DC
-		BOOL result = BitBlt(hdc, 0, 0, m_buffer_width, m_buffer_height, m_memory_dc, 0, 0, SRCCOPY);
-		if (!result)
-		{
-			std::cerr << "BitBlt failed. Error: " << GetLastError() << "\n";
-		}
-	}else
+		std::cerr << "Cannot present pixel buffer, Initialization failed\n";
+		return;
+	}
+
+	// Blit from memory DC (your pixel buffer) to window DChat
+	BOOL result = BitBlt(hdc, 0, 0, m_buffer_width, m_buffer_height, m_memory_dc, 0, 0, SRCCOPY);
+
+	if (!result)
 	{
-		std::cerr << "Cannot present pixel buffer component not initialized\n";
+		std::cerr << "BitBlt failed. Error: " << GetLastError() << "\n";
 	}
 }
 
@@ -189,6 +194,7 @@ void WindowsAdapter::StartWindowed(int x, int y, unsigned int w, unsigned int h,
 	wn.hInstance = m_instance;
 	wn.lpfnWndProc = WindowsAdapter::WinProc;
 	wn.lpszClassName = CLASS_NAME;
+	wn.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 
 	if (!RegisterClass(&wn))
 	{
@@ -245,6 +251,7 @@ void WindowsAdapter::StartWindowed(int x, int y, unsigned int w, unsigned int h,
 		<< L", Right=" << windowRect.right
 		<< L", Bottom=" << windowRect.bottom << L"\n";
 
+
 	m_hWnd = CreateWindowEx(
 		0,
 		CLASS_NAME,
@@ -297,9 +304,10 @@ void WindowsAdapter::StartWindowed(int x, int y, unsigned int w, unsigned int h,
 	// Show window
 	if (m_application)
 	{
+		m_application->Initialize();
+
 		ShowWindow(m_hWnd, nCmdShow);
 		UpdateWindow(m_hWnd);
-		m_application->Initialize();
 
 	}
 	else
@@ -311,17 +319,8 @@ void WindowsAdapter::StartWindowed(int x, int y, unsigned int w, unsigned int h,
 	//  ---------------------------------------
 	// Main loop
 	MSG msg = {};
-	/*while (GetMessage(&msg, nullptr, 0, 0))
-	{
-		if (msg.message == WM_QUIT)
-			break;
-
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}*/
 
 	while (m_hWnd) {
-		//std::cout << "Message\n";
 
 		if (PeekMessage(&msg,
 			nullptr,
@@ -335,16 +334,23 @@ void WindowsAdapter::StartWindowed(int x, int y, unsigned int w, unsigned int h,
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 
-
 		}
 		else
 		{
 			unsigned long time = getTime();
 			unsigned int dt = static_cast<unsigned>(time - m_time);
 			m_time = time;
-			//std::cout << "Updating " << dt << "\n";
+			float aspect = m_buffer_width / (float)m_buffer_height;
 
 			m_application->Update(dt);
+			m_application->Render(aspect);
+
+			if (m_application->GetRenderer())
+				m_application->GetRenderer()->SwapBuffers();
+
+			if (m_hdc)
+				PresentPixelBuffer(m_hdc);
+
 		}
 	}
 
@@ -373,12 +379,6 @@ LRESULT CALLBACK WindowsAdapter::WinProc(HWND hWnd, UINT message, WPARAM wParam,
 		{
 			PAINTSTRUCT ps;
 			HDC hdc = BeginPaint(hWnd, &ps);
-
-			// Let the application handle rendering
-			if (adapter->m_application)
-			{
-				adapter->m_application->Render(0);
-			}
 
 			// Present to screen
 			adapter->PresentPixelBuffer(hdc);

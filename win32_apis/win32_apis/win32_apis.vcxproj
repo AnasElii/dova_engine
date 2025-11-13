@@ -126,6 +126,7 @@
     <ClCompile Include="application.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="platform_factory.cpp" />
+    <ClCompile Include="projection.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="windows_adapter.cpp" />
   </ItemGroup>
@@ -133,7 +134,9 @@
     <ClInclude Include="application.hpp" />
     <ClInclude Include="iplatform_adapter.hpp" />
     <ClInclude Include="platform_factory.hpp" />
+    <ClInclude Include="projection.hpp" />
     <ClInclude Include="renderer.hpp" />
+    <ClInclude Include="vector.h" />
     <ClInclude Include="windows_adapter.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
